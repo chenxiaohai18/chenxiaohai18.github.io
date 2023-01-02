@@ -18,7 +18,20 @@
             {
                 "stockCode": "usLI",
                 "stockRemark": "估值过高，FSD还没在商业模式上验证","stockInfo":[]
+            },
+            {
+                "stockCode": "usKRKR",
+                "stockRemark": "估值过高，FSD还没在商业模式上验证","stockInfo":[]
+            },
+            {
+                "stockCode": "usLIZI",
+                "stockRemark": "估值过高，FSD还没在商业模式上验证","stockInfo":[]
+            },
+            {
+                "stockCode": "usZEPP",
+                "stockRemark": "估值过高，FSD还没在商业模式上验证","stockInfo":[]
             }
+            
         ]
     }
 ]
