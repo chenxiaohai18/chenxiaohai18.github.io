@@ -5,33 +5,39 @@
         "categoryStockLists": [
             {
                 "stockCode": "usTSLA",
-                "stockRemark": "估值过高，FSD还没在商业模式上验证","stockInfo":[]
+                "stockRemark": "估值过高，FSD还没在商业模式上验证",
+                "stockInfo": []
             },
             {
                 "stockCode": "usNIO",
-                "stockRemark": "估值过高，FSD还没在商业模式上验证","stockInfo":[]
+                "stockRemark": "估值过高，FSD还没在商业模式上验证",
+                "stockInfo": []
             },
             {
                 "stockCode": "usXPEV",
-                "stockRemark": "估值过高，FSD还没在商业模式上验证","stockInfo":[]
+                "stockRemark": "估值过高，FSD还没在商业模式上验证",
+                "stockInfo": []
             },
             {
                 "stockCode": "usLI",
-                "stockRemark": "估值过高，FSD还没在商业模式上验证","stockInfo":[]
+                "stockRemark": "估值过高，FSD还没在商业模式上验证",
+                "stockInfo": []
             },
             {
                 "stockCode": "usKRKR",
-                "stockRemark": "估值过高，FSD还没在商业模式上验证","stockInfo":[]
+                "stockRemark": "估值过高，FSD还没在商业模式上验证",
+                "stockInfo": []
             },
             {
                 "stockCode": "usLIZI",
-                "stockRemark": "估值过高，FSD还没在商业模式上验证","stockInfo":[]
+                "stockRemark": "估值过高，FSD还没在商业模式上验证",
+                "stockInfo": []
             },
             {
                 "stockCode": "usZEPP",
-                "stockRemark": "估值过高，FSD还没在商业模式上验证","stockInfo":[]
+                "stockRemark": "估值过高，FSD还没在商业模式上验证",
+                "stockInfo": []
             }
-            
         ]
     }
 ]
