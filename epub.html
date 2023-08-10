@@ -19,10 +19,14 @@
 
     <script>
             "use strict";
+            var params = URLSearchParams && new URLSearchParams(document.location.search.substring(1));
+            var url = params && params.get("url") && decodeURIComponent(params.get("url"));
+            var currentSectionIndex = (params && params.get("loc")) ? params.get("loc") : undefined;
 
             document.onreadystatechange = function () {
               if (document.readyState == "complete") {
-                window.reader = ePubReader("https://chenxiaohai18.github.io/讲出一个精彩故事.epub", {
+                // window.reader = ePubReader("https://chenxiaohai18.github.io/讲出一个精彩故事.epub", {
+                window.reader = ePubReader(url || "https://chenxiaohai18.github.io/讲出一个精彩故事.epub", {
                    restore: true
                  });
               }
