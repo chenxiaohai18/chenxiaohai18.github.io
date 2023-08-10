@@ -34,7 +34,7 @@
       function openBook(e) {
         var bookData = e.target.result;
         window.reader = ePubReader(bookData, {
-          restore: true
+          restore: false
         });
       }
     }
@@ -52,6 +52,11 @@
         <a id="slider" class="icon-menu">Menu</a>
       </div>
       <input type="file" id="input">
+      <div id="metainfo">
+        <span id="book-title"></span>
+        <span id="title-seperator">&nbsp;&nbsp;–&nbsp;&nbsp;</span>
+        <span id="chapter-title"></span>
+      </div>
     </div>
     <div id="divider"></div>
     <!-- style="display: none;" -->
