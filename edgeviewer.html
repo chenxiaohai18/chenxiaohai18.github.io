@@ -1,0 +1,569 @@
+<!-- < msreadoutspan class="msreadout-word-highlight"> 发</msreadoutspan> -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电子书阅读器</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jschardet/1.4.1/jschardet.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+
+    <style>
+        .disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+            text-decoration: none;
+            color: red;
+        }
+
+        .file-input-div {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .custom-file-input {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        /* 隐藏原生输入框 */
+        .custom-file-input input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            height: 100%;
+            width: 100%;
+        }
+
+        /* 自定义样式 */
+        .custom-file-label {
+            width: 480px;
+            display: inline-block;
+            padding: 8px 20px;
+            text-align: center;
+            background: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* 未选择文件时的提示文字 */
+        .file-name::before {
+            content: "点击选择txt、epub文件";
+            color: white;
+        }
+
+        .file-name:hover::after {
+            opacity: 1;
+            content: '';
+        }
+
+        .main-div {
+            position: relative;
+        }
+
+        .padviewer {
+            position: absolute;
+            display: none;
+            z-index: 1;
+        }
+
+        .viewer {
+            display: none;
+            line-height: 35px;
+            letter-spacing: 1px;
+        }
+
+        label {
+            display: inline-block;
+            margin-bottom: 15px;
+            font-size: medium;
+            align-items: center;
+            text-align: center;
+        }
+
+        .display-type {
+            margin-left: 10px;
+            margin-right: 10px;
+            accent-color: #007bff;
+        }
+
+
+        /* 基础重置*/
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .page-title {
+            border-left: 1px solid red;
+            padding-left: 5px;
+            position: absolute;
+            width: 100%;
+            color: #ddd;
+            font-size: small;
+            margin-top: 0px;
+            z-index: 2;
+        }
+
+        .page-tip {
+            width: 100%;
+            color: #ddd;
+            font-size: small;
+            margin-top: 3px;
+            padding-right: 5px;
+            text-align: right;
+        }
+
+        .page-index {
+            width: 100%;
+            color: #ddd;
+            font-size: small;
+            margin-top: -50px;
+            text-align: center;
+        }
+
+        .reader-container {
+            width: 90%;
+            height: 95vh;
+            margin: 20px auto;
+            margin-bottom: 0;
+            padding: 80px 70px;
+            background: white;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            overflow-y: auto;
+            column-count: 2;
+            column-gap: 140px;
+            column-fill: auto;
+            column-rule: 0px solid #eee;
+            overflow: hidden;
+        }
+
+
+        .reader-container::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 20%;
+            height: 60%;
+            width: 1px;
+            background-color: var(--before-bg, '#eee');
+        }
+
+        .content {
+            line-height: 35px;
+            letter-spacing: 3px;
+            font-size: 16px;
+            color: #333;
+            text-align: justify;
+            hyphens: auto;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            orphans: 3;
+            widows: 3;
+            text-indent: 2;
+        }
+
+        /* 禁止元素跨栏  */
+        h1,
+        h2,
+        h3,
+        p,
+        img {
+            /**break-inside: avoid;*/
+            margin-bottom: 1.2em;
+        }
+
+
+        p {
+            text-indent: var(--p-text-indent, '0em');
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 0px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<script>
+    var cursorIndex;
+    function hideCursor() {
+        cursorIndex++;
+        if (cursorIndex > 30) {
+            vTitle.style.display = 'none';
+            pageTip.style.display = 'none';
+            lblPageIndex.style.display = 'none';
+            document.body.style.cursor = 'none';
+        }
+    }
+    function resetCursorVisibility(event) {
+        if (!defDisplayType.checked) {
+            vTitle.style.display = 'block';
+            pageTip.style.display = 'block';
+            lblPageIndex.style.display = 'block';
+        }
+        document.body.style.cursor = 'auto';
+        cursorIndex = 0;
+    }
+    document.addEventListener('mousemove', resetCursorVisibility);
+
+
+    var pagePlayIndex = 0; // 当前播放位置索引
+    var pageIndex = 0; // 当前显示页索引
+    var pageTotal = 0; // 总页数
+    var scrollContainer;
+    var content;
+    var pageWidth;
+    var pageTip;
+    function loadPad() {
+        scrollContainer = document.getElementsByClassName("reader-container")[0];
+        var vWidth = content.getBoundingClientRect().width;
+        pageWidth = scrollContainer.offsetWidth + 140 - 140;
+        pageTotal = parseInt(vWidth / pageWidth);
+        displayPageTip();
+        keyEvent();
+        setInterval(executeEverySecondPad, 100);
+    }
+
+    var iskeydown = false;
+    function keyEvent() {
+        if (iskeydown) return;
+        iskeydown = true;
+        window.addEventListener('keydown', function (event) {
+            switch (event.key) {
+                case 'ArrowUp':
+                case 'ArrowLeft':
+                    pageIndex--;
+                    if (pageIndex < 0) pageIndex = 0;
+                    displayPageTip();
+                    goPage(pageIndex);
+                    break;
+                case 'ArrowDown':
+                case 'ArrowRight':
+                    pageIndex++;
+                    if (pageIndex > pageTotal) pageIndex = pageTotal;
+                    displayPageTip();
+                    goPage(pageIndex);
+                    break;
+            }
+
+        });
+    }
+
+    function displayPageTip() {
+        var pagePlayIndexlbl = pagePlayIndex + 1;
+        if (pagePlayIndexlbl < 10) pagePlayIndexlbl = '0' + pagePlayIndexlbl;
+        var pageIndexlbl = pageIndex + 1;
+        if (pageIndexlbl < 10) pageIndexlbl = '0' + pageIndexlbl;
+        var pageTotallbl = pageTotal + 1;
+        if (pageTotallbl < 10) pageTotallbl = '0' + pageTotallbl;
+        if (pageIndex == pagePlayIndex) {
+            pageTip.innerText = pageIndexlbl + ' : ' + pageTotallbl;
+        } else {
+            pageTip.innerText = pagePlayIndexlbl + ' : ' + pageIndexlbl + ' : ' + pageTotallbl;
+        }
+    }
+
+    function executeEverySecondPad() {
+        hideCursor();
+        pageWidth = scrollContainer.offsetWidth + 140 - 140;
+        pageTotal = parseInt(content.getBoundingClientRect().width / pageWidth);
+        displayPageTip();
+        var items = document.getElementsByClassName("msreadout-word-highlight");
+        if (items && items.length > 0) {
+            var element = items[0];
+            var index = parseInt(element.offsetLeft / pageWidth);
+            if (pagePlayIndex == index || element.offsetLeft % pageWidth < 80) return;
+            if (Math.abs(index - pagePlayIndex) != 1) {
+                pageIndex = index - 1;
+            } else if (pageIndex + 1 != index) {
+                pagePlayIndex = index;
+                return;
+            }
+            pagePlayIndex = index;
+            pageIndex++;
+            goPage(index);
+        }
+    }
+
+    function goPage(index) {
+        var left = (index * (pageWidth));
+        scrollContainer.scrollTo({
+            left: left,
+            behavior: 'auto',
+        });
+
+    }
+
+    function isMobileDevice() {
+        return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1) || (screen.width > 0 && screen.width < 768);
+    }
+    function loaded() {
+        var isMobile = isMobileDevice();
+        var paddWidth = screen.width * 0.1;
+        if (isMobile) {
+            paddWidth = 20;
+        }
+        document.body.style.padding = paddWidth + 'px';
+
+
+
+        setInterval(executeEverySecond, 100);
+    }
+    function executeEverySecond() {
+        hideCursor();
+        var items = document.getElementsByClassName("msreadout-word-highlight");
+        if (items && items.length > 0) {
+            var element = items[0];
+            var rect = element.getBoundingClientRect();
+            if (rect.top > window.innerHeight - 50 && rect.top < window.innerHeight * 2) {
+                element.scrollIntoView({
+                    //behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        }
+    }
+
+    var defDisplayType; // 默认显示
+    var defThemeType; // 默认主题
+    var viewer; // 默认显示
+    var padviewer; // 双栏显示
+    var filePageSize; // 文件总页数
+    var lblPageIndex;
+    var vTitle;
+    window.onload = function () {
+        defDisplayType = document.getElementsByClassName("display-type")[0];
+        if (isMobileDevice()) {
+            document.getElementsByClassName("lbldisplay")[0].style.display = 'none';
+            document.getElementsByClassName("lbldisplay")[1].style.display = 'none';
+            document.getElementsByClassName("custom-file-label")[0].style.width = '300px';
+
+        }
+        defThemeType = document.getElementsByClassName("display-type")[2];
+        vTitle = document.getElementsByClassName("page-title")[0];
+        pageTip = document.getElementsByClassName("page-tip")[0];
+        viewer = document.getElementsByClassName("viewer")[0];
+        padviewer = document.getElementsByClassName("padviewer")[0];
+        content = document.getElementsByClassName("content")[0];
+        lblPageIndex = document.getElementsByClassName("page-index")[0];
+        var inputElementDiv = document.getElementsByClassName("file-input-div")[0];
+        var inputElement = document.getElementById("real-input");
+        inputElement.addEventListener('change', function (e) {
+            inputElementDiv.style.display = "none";
+            var file = e.target.files[0];
+            var fileName = file.name;
+            var fileType = file.type;
+            if (defDisplayType.checked) vTitle.style.display = 'none';
+            vTitle.innerText = fileName;
+            filePageSize = parseInt((file.size) / 424000);
+            if (parseInt((file.size) % 424000)) filePageSize++;
+            var pageIndeHtml = '';
+            for (var i = 1; i <= filePageSize; i++) {
+                if (i == 1) {
+                    pageIndeHtml += '<a href="#" class="disabled" onclick="clickIndex(event,' + i + ');">' + i + '</a>&nbsp;&nbsp;&nbsp;';
+                } else {
+                    pageIndeHtml += '<a href="#" onclick="clickIndex(event,' + i + ');">' + i + '</a>&nbsp;&nbsp;&nbsp;';
+                }
+            }
+            lblPageIndex.innerHTML = pageIndeHtml;
+            if ('text/plain' == fileType) {
+                readTxt(e.target.files[0]);
+            } else if ('application/epub+zip' == fileType) {
+                if (window.FileReader) {
+                    var reader = new FileReader();
+                    reader.onload = openBook;
+                    reader.readAsArrayBuffer(file);
+                }
+            }
+        });
+        function readTxt(file) {
+            var fileType = file.type;
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                var data = e.target.result;
+                if (data.indexOf('的') < 0) {
+                    reader.readAsText(file, 'utf-8');
+                    return;
+                }
+                replaceKeywordTxt(data);
+                showData();
+            };
+            reader.readAsText(file, 'gbk');
+        }
+        function replaceKeywordTxt(txt) {
+            htmlELs = txt.split('\n')
+                .map(line => line.trim())     // 去除首尾空格
+                .filter(line => line.length > 0) // 过滤空行
+                .map(line => line.indexOf('自带浏览器') < 0 ? line : '')
+                .map(line => line.indexOf('谷歌浏览器') < 0 ? line : '')
+                .map(line => line.indexOf('字数：') < 0 ? line : '')
+                .map(line => line.indexOf('作者：') < 0 ? line : '')
+                .map(line => line.indexOf('最新网址') < 0 ? line : '')
+                .map(line => line.indexOf('&xFF2D;') < 0 ? line : '')
+                .map(line => line.indexOf('&ｂ２０２１') < 0 ? line : '')
+                .map(line => '<p>' + line + '</p>');
+        }
+
+        async function openBook(e) {
+            var book = ePub();
+            var bookData = e.target.result;
+            book.open(bookData);
+            const nav = await book.loaded.navigation;
+            const toc = nav.toc;
+            var data = '';
+            for (let i = 0; i < toc.length; i++) {
+                var item = toc[i];
+                const spineItem = book.spine.get(item.href);
+                const htmlContent = await spineItem.load(book.load.bind(book));
+                // console.log('[' + i + ']：' + spineItem.document.body.innerHTML);
+                _contentTxt = '';
+                getTextNodes(spineItem.document.body);
+                data += _contentTxt;
+                // console.log(_content);
+            }
+            htmlELs = data.split('\n')
+                .map(line => line.trim())     // 去除首尾空格
+                .filter(line => line.length > 0) // 过滤空行
+                .map(line => '<p>' + line + '</p>');
+            showData()
+        }
+    }
+    var htmlELs;
+    var fileIndex = 1;
+    var pageTarget;
+    function clickIndex(event, index) {
+        pageIndex = 0;
+        pagePlayIndex = 0;
+        pageTotal = 0;
+        fileIndex = index;
+        showData();
+        goPage(0);
+
+        if (pageTarget == undefined) {
+            pageTarget = document.getElementsByClassName("disabled")[0];
+        }
+        pageTarget.classList.remove('disabled');
+        pageTarget = event.target;
+        pageTarget.classList.add('disabled');
+
+    }
+    function showData() {
+        var _htmlELs = htmlELs;
+        if (!defDisplayType.checked) {
+            var len = htmlELs.length;
+            var page = parseInt(len / filePageSize);
+            _htmlELs = htmlELs.slice(page * (fileIndex - 1), (page * fileIndex) + 1);
+        }
+        _htmlELs = _htmlELs.join('');
+        _htmlELs = _htmlELs.replaceAll('*', '').replaceAll('＊', '').replaceAll('？', '? ').replaceAll('（', ' (').replaceAll('）', ') ').replaceAll('，', ', ').replaceAll('：', ': ').replaceAll('‘', '').replaceAll('’', '')
+            .replaceAll('jiba', '鸡巴').replaceAll('guntang', '滚烫').replaceAll('yindao', '阴道').replaceAll('yinchun', '阴唇').replaceAll('taonong', '套弄').replaceAll('yuhuo', '欲火').replaceAll('mama', '妈妈').replaceAll('zuoai', '做爱').replaceAll('yinghe', '迎合').replaceAll('yinhe', '迎合')
+            .replaceAll('ying', '硬').replaceAll('ma', '吗').replaceAll('xie', '泄').replaceAll('le', '了').replaceAll('chou', '抽').replaceAll('cha', '插').replaceAll('fang', '房').replaceAll('ru', '乳').replaceAll('luan', '乱').replaceAll('lun', '伦').replaceAll('kou', '口').replaceAll('jiao', '交')
+            .replaceAll('nang', '囊').replaceAll('tao', '套').replaceAll('nong', '浓').replaceAll('mei', '妹').replaceAll('jie', '姐').replaceAll('jian', '奸').replaceAll('rou', '肉').replaceAll('bang', '棒').replaceAll('cao', '操').replaceAll('xue', '穴').replaceAll('xiao', '小').replaceAll('shuang', '爽')
+            .replaceAll('si', '死').replaceAll('zi', '子').replaceAll('gong', '宫').replaceAll('gui', '龟').replaceAll('tou', '头').replaceAll('jing', '精').replaceAll('ye', '液').replaceAll('sao', '骚').replaceAll('dong', '洞').replaceAll('yin', '淫');
+
+        if (defDisplayType.checked || isMobileDevice()) {
+            viewer.style.display = "block";
+            viewer.innerHTML = _htmlELs;
+            loaded();
+            if (!defThemeType.checked) {
+                document.body.style.backgroundColor = 'black';
+                document.body.style.color = '#333333';
+            } else {
+                document.body.style.backgroundColor = '#f5f5f7';
+                document.body.style.color = '#333333';
+            }
+        } else {
+            padviewer.style.display = "block";
+            content.innerHTML = _htmlELs;
+            loadPad();
+            document.documentElement.style.setProperty('--p-text-indent', '2em'); // 全局修改
+            if (!defThemeType.checked) {
+                scrollContainer.style.setProperty('--before-bg', '#0d0d0d');
+                document.body.style.backgroundColor = 'black';
+                scrollContainer.style.backgroundColor = 'black';
+                content.style.color = '#333333';
+                pageTip.style.color = '#333333';
+                vTitle.style.color = '#333333';
+            } else {
+                scrollContainer.style.setProperty('--before-bg', '#eee');
+                document.body.style.backgroundColor = 'white';
+                scrollContainer.style.backgroundColor = 'white';
+                pageTip.style.color = '#ddd';
+                vTitle.style.color = '#ddd';
+                content.style.color = '#333333';
+            }
+        }
+    }
+
+    var _contentTxt = '';
+    function getTextNodes(node) {
+        if (null == node) return;
+        if (node.nodeType === Node.TEXT_NODE) {
+            var txt = node.textContent.trim();
+            if ('' == txt) return;  // 过滤掉不显示的内容
+            // if (/^\[\d+\]$/.test(txt) || /^\(\d+\)$/.test(txt)) return;
+            if (txt.length > 5) {
+                txt += '\r\n';
+            } else {
+                txt += ' ';
+            }
+            _contentTxt += txt;
+            return [node];
+        }
+        for (let i = 0; i < node.childNodes.length; i++) getTextNodes(node.childNodes[i]);
+    }
+
+</script>
+
+<body>
+    <div class="file-input-div">
+        <div>
+            <div style="align-items: center;justify-content: center;text-align: center;">
+                <label class="lbldisplay">
+                    <input class="display-type" type="radio" name="option" value="1" checked="true"> 默认显示</label>
+                <label class="lbldisplay">
+                    <input class="display-type" type="radio" name="option" value="2">
+                    双栏显示&nbsp;&nbsp;&nbsp;&nbsp;|</label>
+                &nbsp;
+                <label> <input class="display-type" type="radio" name="option2" value="1" checked="true"> 默认主题</label>
+                <label> <input class="display-type" type="radio" name="option2" value="2"> 暗黑主题</label>
+            </div>
+            <div class="custom-file-input">
+                <input type="file" id="real-input" title="">
+                <div class="custom-file-label">
+                    <span class="file-name"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-div">
+        <div class="padviewer">
+            <div class="reader-container">
+                <div class="content"></div>
+            </div>
+            <div class="page-tip"></div>
+            <div class="page-index"></div>
+        </div>
+        <div class="page-title"></div>
+    </div>
+    <div class="viewer"></div>
+
+
+</body>
+
+</html>
