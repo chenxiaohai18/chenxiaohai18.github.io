@@ -243,6 +243,7 @@
         if (iskeydown) return;
         iskeydown = true;
         window.addEventListener('keydown', function (event) {
+            cursorIndex = 0;
             switch (event.key) {
                 case 'ArrowUp':
                 case 'ArrowLeft':
