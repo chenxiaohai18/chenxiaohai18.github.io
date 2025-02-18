@@ -203,17 +203,17 @@
     function hideCursor() {
         cursorIndex++;
         if (cursorIndex > 30) {
-            vTitle.style.display = 'none';
-            pageTip.style.display = 'none';
-            lblPageIndex.style.display = 'none';
+            vTitle.style.visibility = 'hidden';
+            pageTip.style.visibility = 'hidden';
+            lblPageIndex.style.visibility = 'hidden';
             document.body.style.cursor = 'none';
         }
     }
     function resetCursorVisibility(event) {
         if (!defDisplayType.checked) {
-            vTitle.style.display = 'block';
-            pageTip.style.display = 'block';
-            lblPageIndex.style.display = 'block';
+            vTitle.style.visibility = 'visible';
+            pageTip.style.visibility = 'visible';
+            lblPageIndex.style.visibility = 'visible';
         }
         document.body.style.cursor = 'auto';
         cursorIndex = 0;
@@ -243,7 +243,7 @@
         if (iskeydown) return;
         iskeydown = true;
         window.addEventListener('keydown', function (event) {
-            cursorIndex = 0;
+            resetCursorVisibility();
             switch (event.key) {
                 case 'ArrowUp':
                 case 'ArrowLeft':
