@@ -1,4 +1,4 @@
-<!-- < msreadoutspan class="msreadout-word-highlight"> 发</msreadoutspan> -->
+<!-- < msreadoutspan class="msreadout-word-highlight">发</msreadoutspan> -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -9,6 +9,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jschardet/1.4.1/jschardet.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+    <script src="https://chenxiaohai18.github.io/common.js"></script>
+
 
     <style>
         .disabled {
@@ -327,9 +329,9 @@
         if (items && items.length > 0) {
             var element = items[0];
             var rect = element.getBoundingClientRect();
-            if (rect.top > window.innerHeight*(3/4) && rect.top < window.innerHeight * 2) {
+            if (rect.top > window.innerHeight * (3 / 4) && rect.top < window.innerHeight * 2) {
                 window.scrollTo({
-                    top: window.scrollY + (window.innerHeight/2),
+                    top: window.scrollY + (window.innerHeight / 2) + 50,
                     behavior: 'auto',
                 });
                 /**
@@ -473,11 +475,10 @@
             _htmlELs = htmlELs.slice(page * (fileIndex - 1), (page * fileIndex) + 1);
         }
         _htmlELs = _htmlELs.join('');
-        _htmlELs = _htmlELs.replaceAll('*', '').replaceAll('＊', '').replaceAll('？', '? ').replaceAll('（', ' (').replaceAll('）', ') ').replaceAll('，', ', ').replaceAll('：', ': ').replaceAll('‘', '').replaceAll('’', '')
-            .replaceAll('jiba', '鸡巴').replaceAll('guntang', '滚烫').replaceAll('yindao', '阴道').replaceAll('yinchun', '阴唇').replaceAll('taonong', '套弄').replaceAll('yuhuo', '欲火').replaceAll('mama', '妈妈').replaceAll('zuoai', '做爱').replaceAll('yinghe', '迎合').replaceAll('yinhe', '迎合')
-            .replaceAll('ying', '硬').replaceAll('ma', '吗').replaceAll('xie', '泄').replaceAll('le', '了').replaceAll('chou', '抽').replaceAll('cha', '插').replaceAll('fang', '房').replaceAll('ru', '乳').replaceAll('luan', '乱').replaceAll('lun', '伦').replaceAll('kou', '口').replaceAll('jiao', '交')
-            .replaceAll('nang', '囊').replaceAll('tao', '套').replaceAll('nong', '浓').replaceAll('mei', '妹').replaceAll('jie', '姐').replaceAll('jian', '奸').replaceAll('rou', '肉').replaceAll('bang', '棒').replaceAll('cao', '操').replaceAll('xue', '穴').replaceAll('xiao', '小').replaceAll('shuang', '爽')
-            .replaceAll('si', '死').replaceAll('zi', '子').replaceAll('gong', '宫').replaceAll('gui', '龟').replaceAll('tou', '头').replaceAll('jing', '精').replaceAll('ye', '液').replaceAll('sao', '骚').replaceAll('dong', '洞').replaceAll('yin', '淫');
+        _htmlELs = _htmlELs.replaceAll('*', '').replaceAll('＊', '').replaceAll('？', '? ').replaceAll('（', ' (').replaceAll('）', ') ').replaceAll('，', ', ').replaceAll('：', ': ').replaceAll('‘', '').replaceAll('’', '');
+        try {
+            _htmlELs = replaceAllKeyWord(_htmlELs);
+        } catch (e) { }
 
         if (defDisplayType.checked || isMobileDevice()) {
             viewer.style.display = "block";
@@ -551,6 +552,11 @@
                 <div class="custom-file-label">
                     <span class="file-name"></span>
                 </div>
+            </div>
+            <div style="text-align: center;">
+                <br />
+                <br />
+                <a href="https://convertio.co/zh/epub-txt/">在线 epub 转 txt</a>
             </div>
         </div>
     </div>
