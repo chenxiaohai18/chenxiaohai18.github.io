@@ -1,4 +1,4 @@
-<!-- < msreadoutspan class="msreadout-word-highlight"> 发</msreadoutspan> -->
+<!-- < msreadoutspan class="msreadout-word-highlight">发</msreadoutspan> -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -329,9 +329,9 @@
         if (items && items.length > 0) {
             var element = items[0];
             var rect = element.getBoundingClientRect();
-            if (rect.top > window.innerHeight - 50 && rect.top < window.innerHeight * 2) {
+            if (rect.top > window.innerHeight * (3 / 4) && rect.top < window.innerHeight * 2) {
                 window.scrollTo({
-                    top: window.scrollY + (window.innerHeight) - 100,
+                    top: window.scrollY + (window.innerHeight / 2) + 50,
                     behavior: 'auto',
                 });
                 /**
@@ -476,7 +476,10 @@
         }
         _htmlELs = _htmlELs.join('');
         _htmlELs = _htmlELs.replaceAll('*', '').replaceAll('＊', '').replaceAll('？', '? ').replaceAll('（', ' (').replaceAll('）', ') ').replaceAll('，', ', ').replaceAll('：', ': ').replaceAll('‘', '').replaceAll('’', '');
-        _htmlELs = replaceAllKeyWord(_htmlELs);
+        try {
+            _htmlELs = replaceAllKeyWord(_htmlELs);
+        } catch (e) { }
+
         if (defDisplayType.checked || isMobileDevice()) {
             viewer.style.display = "block";
             viewer.innerHTML = _htmlELs;
@@ -549,6 +552,11 @@
                 <div class="custom-file-label">
                     <span class="file-name"></span>
                 </div>
+            </div>
+            <div style="text-align: center;">
+                <br />
+                <br />
+                <a href="https://convertio.co/zh/epub-txt/">在线 epub 转 txt</a>
             </div>
         </div>
     </div>
