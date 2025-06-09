@@ -298,6 +298,7 @@
         .play-pos {
             height: 30px;
             width: 40px;
+            font-size: 10px;
             color: rgba(255, 0, 0, 0.563);
             display: flex;
             align-items: center;
@@ -974,22 +975,22 @@
     }
 
     function selectRead() {
-        document.addEventListener('mouseup', function () {
-            let selection = window.getSelection();
-            if (selection.toString().length <= 0 || selection.toString().length > 20) return;
-            stopReading();
-            var repStr = '[@@@@@]';
-            let range = selection.getRangeAt(0);
-            range.insertNode(document.createTextNode(repStr));
-            var el = selection.anchorNode.parentElement;
-            if (el.className == "highlight") el = el.parentElement;
-            if (el.className == "line-selection") el = el.parentElement;
-            document.querySelectorAll('.line-selection').forEach(function (el) { el.parentElement.innerHTML = el.parentElement.innerText; });
-            var anchorOffset = el.innerText.indexOf(repStr);
-            el.innerText = el.innerText.replace(repStr, '');
-            selection.removeAllRanges();
-            startReading(el, anchorOffset);
-        });
+        // document.addEventListener('mouseup', function () {
+        //     let selection = window.getSelection();
+        //     if (selection.toString().length <= 0 || selection.toString().length > 20) return;
+        //     stopReading();
+        //     var repStr = '[@@@@@]';
+        //     let range = selection.getRangeAt(0);
+        //     range.insertNode(document.createTextNode(repStr));
+        //     var el = selection.anchorNode.parentElement;
+        //     if (el.className == "highlight") el = el.parentElement;
+        //     if (el.className == "line-selection") el = el.parentElement;
+        //     document.querySelectorAll('.line-selection').forEach(function (el) { el.parentElement.innerHTML = el.parentElement.innerText; });
+        //     var anchorOffset = el.innerText.indexOf(repStr);
+        //     el.innerText = el.innerText.replace(repStr, '');
+        //     selection.removeAllRanges();
+        //     startReading(el, anchorOffset);
+        // });
     }
 
 
@@ -1173,7 +1174,7 @@
         <div class="default-bar">
             <button class="play-btn" style="display: none;">播 放</button>
             <div class="chapter-info" onclick="toggleDetail()">--</div>
-            <div class="play-pos" onclick="playPos()" title="直达播放位置">···</div>
+            <div class="play-pos" onclick="playPos()" title="直达播放位置">··</div>
         </div>
 
         <div class="book-container" id="bookDetail">
