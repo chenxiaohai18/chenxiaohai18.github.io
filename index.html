@@ -791,9 +791,7 @@
             txt = txt.replaceAll('…', '');
             txt = txt.replaceAll('—', '');
 
-
-            //const chapterPattern = /^第([零一二三四五六七八九十百千万\d]+)([章部回卷])\s*([^$\n]*)/;
-            const chapterPattern = /第([零一二三四五六七八九十百千万\d]+)([章部回卷])\s*([^$\n]*)/;
+            const chapterPattern = /(?:第|（|)([零一二三四五六七八九十百千万\d]+)(?:[章部回卷]|）)\s*([^$\n]*)/;
 
             var chapters = ['开始阅读'];
             var index = 1;
@@ -880,7 +878,7 @@
         }
         _htmlELs = _htmlELs.join('');
         _htmlELs = _htmlELs.replace(/([\u4e00-\u9fa5])<\/p><p>[^<]/g, '$1');
-        _htmlELs = _htmlELs.replaceAll('*', '').replaceAll('＊', '').replaceAll('？', '? ').replaceAll('（', ' (').replaceAll('）', ') ').replaceAll('，', ', ').replaceAll('：', ': ').replaceAll('‘', '').replaceAll('’', '');
+        _htmlELs = _htmlELs.replaceAll('*', '').replaceAll('＊', '').replaceAll('？', '? ').replaceAll('（', ' (').replaceAll('）', ') ').replaceAll('，', ', ').replaceAll('：', ': ').replaceAll('‘', '').replaceAll('’', '').replaceAll('＿', '');
         // try {
         //     _htmlELs = replaceAllKeyWord(_htmlELs);
         // } catch (e) {
@@ -1174,7 +1172,7 @@
         <div class="default-bar">
             <button class="play-btn" style="display: none;">播 放</button>
             <div class="chapter-info" onclick="toggleDetail()">--</div>
-            <div class="play-pos" onclick="playPos()" title="直达播放位置">··</div>
+            <div class="play-pos" onclick="playPos()" title="直达播放位置">···</div>
         </div>
 
         <div class="book-container" id="bookDetail">
